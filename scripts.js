@@ -246,29 +246,33 @@ $('#downloadPNG').click(function() {
 });
 
 $('#downloadBIN').click(function() {
-	if (!$(this).hasClass('disabled')) {
-		var filename = ($('#topscreen').width() == 400) ? 'splash.bin' : 'menuhax_imagedisplay.bin';
-		
-		var width = $('#topscreen').height();
-		var height = $('#topscreen').width();
-		
-		var $canvas = $('<canvas/>').css({ position: 'absolute', top: 0, left: -1*width }).appendTo('body');
-		$canvas.attr('width', width).attr('height', height);
-
-		$canvas.drawImage({
-			source: $('#topscreen').getCanvasImage(),
-			x: width/2, y: height/2,
-			fromCenter: true,
-			rotate: 90
-		});
-
-		var canvasdata = $canvas.get(0).getContext('2d').getImageData(0, 0, width, height).data;
-		var filedata = '';
-		
-		for(var i = 0; i < canvasdata.length; i += 4)
-			filedata += String.fromCharCode(canvasdata[i+2], canvasdata[i+1], canvasdata[i]);
-
-		$canvas.remove();
-		download('data:application/octet-stream;base64,' + window.btoa(filedata), filename);
-	}
+  with(new FileReader){
+    readAsDataURL(new File($('#topscreen').getCanvasImage(), "temp.png", {type: "image/png", lastModified: (+ new Date())));
+    onload=function(){
+      z=new Image;
+      z.src=result;
+      W=c.width=rotate.checked?z.height:z.width;
+      H=c.height=rotate.checked?z.width:z.height;
+      x=c.getContext("2d");
+      if(true){
+        x.save();
+        x.translate(c.width/2,c.height/2);
+        x.rotate(90*Math.PI/180);
+        x.drawImage(z,-z.width/2,-z.height/2);
+        x.restore();
+      }
+      else{
+        x.drawImage(z,0,0);
+      }
+      d=x.getImageData(0,0,W,H).data;
+      b='';
+      for(i=0;i<d.length;i+=4){
+        if(alpha.checked){
+          b+=String.fromCharCode(d[i+3]);
+        }
+        b+=String.fromCharCode(d[i+2], d[i+1], d[i]);
+      }
+      a.href="data:application/octet-stream;base64,"+btoa(b);
+    }
+  }
 });
